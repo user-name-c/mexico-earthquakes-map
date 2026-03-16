@@ -1,0 +1,38 @@
+# --- Python ---
+__pycache__/
+*.py[cod]
+*$py.class
+.env
+.venv
+env/
+venv/
+ENV/
+
+# --- Jupyter Notebooks ---
+.ipynb_checkpoints
+*/.ipynb_checkpoints/*
+*-checkpoint.py
+
+# --- Project Specific Data ---
+# Ignoramos los datos locales para que no pesen en el repo, 
+# pero mantenemos la carpeta con un .gitkeep si deseas
+data/*.csv
+data/*.geojson
+data/*.shp
+data/*.shx
+data/*.dbf
+data/*.prj
+
+# --- Output ---
+# Ignoramos el mapa final ya que se genera con el script
+output/*.html
+
+# --- IDEs & OS ---
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# --- Environments (Conda/WSL2) ---
+.conda/
+*.log
