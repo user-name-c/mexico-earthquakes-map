@@ -4,6 +4,12 @@ An end-to-end geospatial data project to visualize seismic activity in Mexico us
 
 This tool transforms raw seismic data into an interactive web-based map, allowing users to analyze spatial distributions, magnitudes, and depths of recent earthquakes.
 
+## 🗺️ Preliminary Map Visualization
+
+![Preliminary Exploration Map](https://raw.githubusercontent.com/user-name-c/mexico-earthquakes-map/main/output/preliminary_exploration.png)
+
+*Figure 1: Preliminary visualization of seismic activity in Mexico showing earthquake distribution, magnitude (bubble size), and depth (color scale).*
+
 ## 🚀 Project Objectives
 
 * **Data Acquisition:** Fetch live earthquake data (Magnitude, Depth, Coordinates, Date) via REST API.
@@ -30,7 +36,8 @@ mexico-earthquakes-map/
 │   ├── load_data.py        # API requests and data fetching
 │   ├── process_data.py     # GeoDataFrame creation and CRS handling
 │   └── build_map.py        # Map generation and styling
-├── output/                 # Final interactive HTML maps
+├── output/                 # Final interactive HTML maps and visualizations
+│   └── preliminary_exploration.png  # Static map preview
 ├── README.md
 └── requirements.txt        # Project dependencies
 
