@@ -54,7 +54,7 @@ mexico-earthquakes-map/
 
 1. **Clone the repository:**
 ```bash
-git clone https://github.com/your-username/mexico-earthquakes-map.git
+git clone https://github.com/user-name-c/mexico-earthquakes-map.git
 
 ```
 
