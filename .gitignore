@@ -22,6 +22,11 @@ data/*.shp
 data/*.shx
 data/*.dbf
 data/*.prj
+data/*.cpg
+
+# Ignoramos los scripts de conversión ya que son parte del proceso, pero no queremos que se suban al repo
+src/convert_shp_to_geojson.py
+
 
 # --- Output ---
 # Ignoramos el mapa final ya que se genera con el script
