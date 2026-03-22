@@ -30,7 +30,7 @@ src/convert_shp_to_geojson.py
 
 # --- Output ---
 # Ignoramos el mapa final ya que se genera con el script
-output/*.html
+output/
 
 # --- IDEs & OS ---
 .vscode/

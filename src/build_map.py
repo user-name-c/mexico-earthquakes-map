@@ -32,7 +32,9 @@ def build_interactive_map(data_path, geojson_path, output_path):
     m = folium.Map(
         location=[23.6345, -102.5528], 
         zoom_start=5, 
-        tiles='CartoDB positron'
+        tiles='CartoDB positron',
+        width='100%',
+        height='100%'
     )
 
     # 3. Add Mexico States Layer (Context)
