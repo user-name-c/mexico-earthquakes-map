@@ -78,5 +78,5 @@ if __name__ == "__main__":
     build_interactive_map(
         '../data/earthquakes.csv', 
         '../data/mexico_states.geojson', 
-        '../output/earthquake_map_mexico.html'
+        '../docs/earthquake_map_mexico.html'
     )
