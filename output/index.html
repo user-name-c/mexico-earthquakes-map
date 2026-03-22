@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>México Seismic Atlas</title>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,300;0,400;0,600;1,300&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --red:    #e41a1c;
+      --orange: #ff7f00;
+      --blue:   #377eb8;
+      --bg:     #0b0c10;
+      --panel:  #13151a;
+      --border: #2a2d35;
+      --text:   #e8e9ed;
+      --muted:  #6b7280;
+      --accent: #e41a1c;
+    }
+
+    html, body { height: 100%; background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; overflow: hidden; }
+
+    /* HEADER */
+    header {
+      position: fixed; top: 0; left: 0; right: 0; height: 52px;
+      background: var(--panel); border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 20px; z-index: 900;
+    }
+    .logo { display: flex; align-items: baseline; gap: 10px; }
+    .logo-title { font-family: 'Bebas Neue', sans-serif; font-size: 22px; letter-spacing: 2px; }
+    .logo-sub { font-size: 11px; color: var(--muted); letter-spacing: 1px; text-transform: uppercase; }
+    .header-badge {
+      font-size: 11px; color: var(--muted); background: #1e2028;
+      border: 1px solid var(--border); border-radius: 20px; padding: 3px 12px; letter-spacing: .5px;
+    }
+
+    /* SIDEBAR */
+    #sidebar {
+      position: fixed; top: 52px; left: 0; width: 270px; bottom: 0;
+      background: var(--panel); border-right: 1px solid var(--border);
+      display: flex; flex-direction: column; z-index: 800; overflow-y: auto;
+    }
+    .sidebar-section { padding: 18px 16px 14px; border-bottom: 1px solid var(--border); }
+    .sidebar-section:last-child { border-bottom: none; }
+    .section-label { font-size: 9px; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; color: var(--muted); margin-bottom: 12px; }
+
+    /* stats */
+    .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .stat-card { background: #1a1c24; border: 1px solid var(--border); border-radius: 6px; padding: 10px 12px; }
+    .stat-val { font-family: 'Bebas Neue', sans-serif; font-size: 22px; line-height: 1; color: var(--accent); }
+    .stat-lbl { font-size: 10px; color: var(--muted); margin-top: 2px; letter-spacing: .5px; }
+
+    /* sliders */
+    .filter-row { margin-bottom: 14px; }
+    .filter-row label { display: flex; justify-content: space-between; font-size: 12px; color: var(--text); margin-bottom: 6px; }
+    .filter-row label span { font-weight: 600; color: var(--accent); font-variant-numeric: tabular-nums; }
+    input[type="range"] { -webkit-appearance: none; width: 100%; height: 3px; background: var(--border); border-radius: 2px; outline: none; cursor: pointer; }
+    input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 14px; background: var(--accent); border-radius: 50%; cursor: pointer; transition: transform .15s; }
+    input[type="range"]::-webkit-slider-thumb:hover { transform: scale(1.3); }
+
+    .btn-reset {
+      width: 100%; padding: 8px; background: transparent; border: 1px solid var(--border);
+      border-radius: 6px; color: var(--muted); font-family: 'DM Sans', sans-serif;
+      font-size: 12px; cursor: pointer; transition: border-color .2s, color .2s; margin-top: 4px;
+    }
+    .btn-reset:hover { border-color: var(--accent); color: var(--text); }
+
+    /* filter status */
+    #filter-status { font-size: 11px; color: var(--muted); padding: 10px 16px; display: flex; align-items: center; gap: 6px; border-bottom: 1px solid var(--border); }
+    .pulse { width: 7px; height: 7px; background: var(--accent); border-radius: 50%; animation: pulse 1.8s ease-in-out infinite; flex-shrink: 0; }
+    @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.4;transform:scale(.7)} }
+
+    /* legend */
+    .legend-item { display: flex; align-items: center; gap: 9px; font-size: 12px; color: var(--text); margin-bottom: 7px; }
+    .dot { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; }
+    .mag-scale { display: flex; align-items: flex-end; gap: 12px; margin-top: 8px; }
+    .mag-bubble { background: #4a4f5c; border-radius: 50%; flex-shrink: 0; }
+    .mag-col { display: flex; flex-direction: column; align-items: center; }
+    .mag-label { font-size: 10px; color: var(--muted); text-align: center; margin-top: 4px; }
+
+    /* depth filter note */
+    .dep-note { font-size: 10px; color: var(--muted); margin-top: 6px; line-height: 1.5; }
+    .dep-note b { color: var(--text); }
+
+    /* MAP */
+    #map-frame { position: fixed; top: 52px; left: 270px; right: 0; bottom: 0; border: none; }
+
+
+    #map-frame {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+
+    /* LOADING */
+    #loading {
+      position: fixed; top: 52px; left: 270px; right: 0; bottom: 0;
+      background: var(--bg); display: flex; flex-direction: column;
+      align-items: center; justify-content: center; gap: 18px; z-index: 700; transition: opacity .6s;
+    }
+    #loading.hidden { opacity: 0; pointer-events: none; }
+    .spinner { width: 40px; height: 40px; border: 3px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin .8s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .loading-text { font-family: 'Bebas Neue', sans-serif; font-size: 15px; letter-spacing: 3px; color: var(--muted); }
+
+    #sidebar::-webkit-scrollbar { width: 4px; }
+    #sidebar::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <span class="logo-title">México Seismic Atlas</span>
+    <span class="logo-sub">Earthquake Visualization</span>
+  </div>
+  <span class="header-badge" id="total-badge">Loading…</span>
+</header>
+
+<div id="sidebar">
+
+  <div class="sidebar-section">
+    <div class="section-label">Dataset Overview</div>
+    <div class="stats-grid">
+      <div class="stat-card"><div class="stat-val" id="stat-total">—</div><div class="stat-lbl">Total events</div></div>
+      <div class="stat-card"><div class="stat-val" id="stat-visible">—</div><div class="stat-lbl">Visible now</div></div>
+      <div class="stat-card"><div class="stat-val" id="stat-maxmag">—</div><div class="stat-lbl">Max magnitude</div></div>
+      <div class="stat-card"><div class="stat-val" id="stat-avgmag">—</div><div class="stat-lbl">Avg magnitude</div></div>
+    </div>
+  </div>
+
+  <div class="sidebar-section">
+    <div class="section-label">Filters</div>
+    <div class="filter-row">
+      <label>Min Magnitude <span id="mag-val">0.0</span></label>
+      <input id="mag-slider" type="range" min="0" max="9" step="0.1" value="0">
+    </div>
+    <div class="filter-row">
+      <label>Max Depth (km) <span id="dep-val">700</span></label>
+      <input id="dep-slider" type="range" min="0" max="700" step="10" value="700">
+      <div class="dep-note">
+        Depth is inferred from marker color:<br>
+        <b>Red</b> &lt;33 km · <b>Orange</b> 33–70 km · <b>Blue</b> &gt;70 km
+      </div>
+    </div>
+    <button class="btn-reset" onclick="resetFilters()">↺ Reset Filters</button>
+  </div>
+
+  <div id="filter-status">
+    <span class="pulse" id="pulse-dot"></span>
+    <span id="status-text">Waiting for map…</span>
+  </div>
+
+  <div class="sidebar-section">
+    <div class="section-label">Depth (color)</div>
+    <div class="legend-item"><div class="dot" style="background:#e41a1c;"></div> Shallow &lt;33 km</div>
+    <div class="legend-item"><div class="dot" style="background:#ff7f00;"></div> Intermediate 33–70 km</div>
+    <div class="legend-item"><div class="dot" style="background:#377eb8;"></div> Deep &gt;70 km</div>
+  </div>
+
+  <div class="sidebar-section">
+    <div class="section-label">Magnitude (circle size)</div>
+    <div class="mag-scale">
+      <div class="mag-col"><div class="mag-bubble" style="width:10px;height:10px;"></div><div class="mag-label">M4</div></div>
+      <div class="mag-col"><div class="mag-bubble" style="width:16px;height:16px;"></div><div class="mag-label">M5</div></div>
+      <div class="mag-col"><div class="mag-bubble" style="width:22px;height:22px;"></div><div class="mag-label">M6</div></div>
+      <div class="mag-col"><div class="mag-bubble" style="width:30px;height:30px;"></div><div class="mag-label">M7+</div></div>
+    </div>
+  </div>
+
+  <div class="sidebar-section" style="padding-bottom:20px;">
+    <div class="section-label">About</div>
+    <div style="font-size:11px;color:var(--muted);line-height:1.7;">
+      Circle <b style="color:var(--text);">size</b> encodes magnitude.<br>
+      Circle <b style="color:var(--text);">color</b> encodes depth.<br><br>
+      Use the layer control inside the map to switch basemaps or toggle layers.
+    </div>
+  </div>
+
+</div>
+
+<div id="loading">
+  <div class="spinner"></div>
+  <div class="loading-text">Loading seismic data…</div>
+</div>
+
+<iframe id="map-frame" src="earthquake_map_mexico.html" title="Mexico Earthquake Map"></iframe>
+
+<script>
+// ─────────────────────────────────────────────────────────────────
+// State
+// ─────────────────────────────────────────────────────────────────
+const frame = document.getElementById('map-frame');
+
+// Each entry: { layer: LeafletLayer, mag: number, dep: number }
+let markers    = [];
+let totalCount = 0;
+let maxMag     = 0;
+let sumMag     = 0;
+let lmap       = null;   // reference to the Leaflet map inside the iframe
+let ready      = false;
+
+// ─────────────────────────────────────────────────────────────────
+// Boot sequence
+// ─────────────────────────────────────────────────────────────────
+frame.addEventListener('load', () => {
+  document.getElementById('loading').classList.add('hidden');
+  // Leaflet renders SVG asynchronously after DOMContentLoaded,
+  // so we wait a beat before trying to harvest layers.
+  setTimeout(init, 1500);
+});
+
+function init() {
+  try {
+    const iwin = frame.contentWindow;
+
+    // Folium names its map object "map_<hex>" in the global scope
+    const mapKey = Object.keys(iwin).find(k => /^map_[a-f0-9]+$/.test(k));
+    if (!mapKey) {
+      // Not ready yet — retry
+      setTimeout(init, 1000);
+      return;
+    }
+
+    lmap = iwin[mapKey];
+
+    // Walk every Leaflet layer; CircleMarkers have a numeric radius + _latlng
+    const raw = [];
+    lmap.eachLayer(layer => {
+      if (layer.options && typeof layer.options.radius === 'number' && layer._latlng) {
+        raw.push(layer);
+      }
+    });
+
+    if (raw.length === 0) {
+      setTimeout(init, 1000);
+      return;
+    }
+
+    markers = [];
+    raw.forEach(layer => {
+      const mag = getMag(layer);
+      const dep = getDep(layer);
+      if (mag === null || dep === null) return;
+
+      markers.push({ layer, mag, dep });
+      sumMag += mag;
+      if (mag > maxMag) maxMag = mag;
+    });
+
+    totalCount = markers.length;
+    ready = true;
+    updateStats(totalCount);
+    setStatus('Showing all earthquakes', false);
+    console.log('Ready —', totalCount, 'markers');
+
+  } catch (e) {
+    console.error('init error:', e);
+    setStatus('Filter unavailable', false);
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────
+// Extract magnitude from tooltip string "Mag 5.2"
+// ─────────────────────────────────────────────────────────────────
+function getMag(layer) {
+  try {
+    // Folium stores the tooltip string in options.tooltip
+    let src = layer.options.tooltip || '';
+    if (!src && layer._tooltip) src = layer._tooltip._content || '';
+    const m = String(src).match(/[\d.]+/);
+    return m ? parseFloat(m[0]) : null;
+  } catch(e) { return null; }
+}
+
+// ─────────────────────────────────────────────────────────────────
+// Infer depth representative value from fill color
+//   get_color() in the original Python script:
+//     depth < 33  → #e41a1c  (red)
+//     depth < 70  → #ff7f00  (orange)
+//     else        → #377eb8  (blue)
+//
+//   We map each color to a representative depth midpoint so the
+//   "Max Depth" slider behaves sensibly:
+//     red    → 16 km  (midpoint of 0–33)
+//     orange → 51 km  (midpoint of 33–70)
+//     blue   → 300 km (deep bucket representative)
+// ─────────────────────────────────────────────────────────────────
+function getDep(layer) {
+  try {
+    const c = (layer.options.fillColor || layer.options.color || '').toLowerCase().trim();
+    if (c === '#e41a1c') return 16;
+    if (c === '#ff7f00') return 51;
+    if (c === '#377eb8') return 300;
+    return null;
+  } catch(e) { return null; }
+}
+
+// ─────────────────────────────────────────────────────────────────
+// Filter — adds/removes real Leaflet layers (not CSS tricks)
+// This means reset always works: we just re-add every layer.
+// ─────────────────────────────────────────────────────────────────
+function applyFilters() {
+  if (!ready || !lmap) return;
+
+  const minMag = parseFloat(document.getElementById('mag-slider').value);
+  const maxDep = parseFloat(document.getElementById('dep-slider').value);
+  let visible  = 0;
+
+  markers.forEach(({ layer, mag, dep }) => {
+    const show = mag >= minMag && dep <= maxDep;
+    if (show) {
+      if (!lmap.hasLayer(layer)) layer.addTo(lmap);
+      visible++;
+    } else {
+      if (lmap.hasLayer(layer)) lmap.removeLayer(layer);
+    }
+  });
+
+  updateStats(visible);
+  const filtered = minMag > 0 || maxDep < 700;
+  setStatus(
+    filtered ? `Filtered: ${visible} of ${totalCount} earthquakes` : 'Showing all earthquakes',
+    filtered
+  );
+}
+
+function resetFilters() {
+  document.getElementById('mag-slider').value = 0;
+  document.getElementById('dep-slider').value = 700;
+  document.getElementById('mag-val').textContent = '0.0';
+  document.getElementById('dep-val').textContent = '700';
+
+  if (ready && lmap) {
+    markers.forEach(({ layer }) => {
+      if (!lmap.hasLayer(layer)) layer.addTo(lmap);
+    });
+  }
+
+  updateStats(totalCount);
+  setStatus('Showing all earthquakes', false);
+}
+
+// ─────────────────────────────────────────────────────────────────
+// Slider wiring
+// ─────────────────────────────────────────────────────────────────
+document.getElementById('mag-slider').addEventListener('input', function() {
+  document.getElementById('mag-val').textContent = parseFloat(this.value).toFixed(1);
+  applyFilters();
+});
+document.getElementById('dep-slider').addEventListener('input', function() {
+  document.getElementById('dep-val').textContent = this.value;
+  applyFilters();
+});
+
+// ─────────────────────────────────────────────────────────────────
+// UI helpers
+// ─────────────────────────────────────────────────────────────────
+function updateStats(visible) {
+  document.getElementById('stat-total').textContent   = totalCount || '—';
+  document.getElementById('stat-visible').textContent = visible !== undefined ? visible : (totalCount || '—');
+  document.getElementById('stat-maxmag').textContent  = maxMag ? maxMag.toFixed(1) : '—';
+  document.getElementById('stat-avgmag').textContent  = totalCount ? (sumMag / totalCount).toFixed(1) : '—';
+  document.getElementById('total-badge').textContent  = totalCount
+    ? `${visible !== undefined ? visible : totalCount} / ${totalCount} events`
+    : 'Map loaded';
+}
+
+function setStatus(msg, filtered) {
+  document.getElementById('status-text').textContent     = msg;
+  document.getElementById('pulse-dot').style.background = filtered ? '#ff7f00' : '#e41a1c';
+}
+</script>
+</body>
+</html>
